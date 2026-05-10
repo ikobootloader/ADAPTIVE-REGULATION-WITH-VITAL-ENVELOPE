@@ -1,0 +1,949 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<!-- Frédérick MURAT - MIT - 2026 -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARVE - Adaptive Regulation with Vital Envelope</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f7f7f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ffffff;
+            padding: 24px 32px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #bdc3c7;
+            font-weight: 300;
+        }
+
+        .content-wrapper {
+            display: flex;
+            gap: 24px;
+            padding: 24px;
+        }
+
+        .canvas-section {
+            flex-shrink: 0;
+        }
+
+        canvas {
+            border: 2px solid #34495e;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .controls-panel h2 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #dee2e6;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #3498db;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #3498db;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .explanation {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .explanation h2 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            font-weight: 600;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .explanation h3 {
+            font-size: 15px;
+            color: #34495e;
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+        }
+
+        .explanation p {
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .explanation ul {
+            margin: 8px 0 12px 20px;
+        }
+
+        .explanation li {
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.7;
+            margin-bottom: 4px;
+        }
+
+        .explanation code {
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #e74c3c;
+        }
+
+        .legend {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .legend h3 {
+            font-size: 14px;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #495057;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .explanation::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .explanation::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .explanation::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+
+        .explanation::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+
+        .speed-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #7f8c8d;
+            margin-top: 4px;
+            padding: 0 2px;
+        }
+
+        #speedValue {
+            color: #3498db;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1>ARVE - Adaptive Regulation with Vital Envelope <span class="version-badge">Phase F</span></h1>
+            <p>Agent autonome à décision continue avec diffusion spatiale ψ(s)</p>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="canvas-section">
+                <canvas id="territory" width="600" height="600"></canvas>
+            </div>
+
+            <div class="info-section">
+                <div class="controls-panel">
+                    <h2>Contrôles et statistiques</h2>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Énergie</div>
+                            <div class="stat-value" id="health">500</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Mode actuel</div>
+                            <div class="stat-value" id="direction">Diag:Exploration</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Valeur d'état</div>
+                            <div class="stat-value" id="stateValue">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Frontières</div>
+                            <div class="stat-value" id="frontierCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Zones diffusées</div>
+                            <div class="stat-value" id="diffusionCount">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Arousal alpha</div>
+                            <div class="stat-value" id="arousalValue">0.00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Phase phi</div>
+                            <div class="stat-value" id="phaseValue">0.00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Head prospective</div>
+                            <div class="stat-value" id="prospectiveHead">-</div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <button id="playPauseBtn">Pause</button>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="speedControl">Vitesse de simulation <span id="speedValue">(60%)</span></label>
+                        <input type="range" id="speedControl" min="1" max="100" step="1" value="60">
+                        <div class="speed-labels">
+                            <span>Lent</span>
+                            <span>Rapide</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="lowYieldWeightControl">Poids zone froide <span id="lowYieldWeightValue">(0.6)</span></label>
+                        <input type="range" id="lowYieldWeightControl" min="0" max="3" step="0.1" value="0.6">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="lowYieldIncrementControl">Incrément zone froide <span id="lowYieldIncrementValue">(0.2)</span></label>
+                        <input type="range" id="lowYieldIncrementControl" min="0" max="1" step="0.05" value="0.2">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="lowYieldReliefControl">Allègement zone froide <span id="lowYieldReliefValue">(0.25)</span></label>
+                        <input type="range" id="lowYieldReliefControl" min="0" max="1" step="0.05" value="0.25">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="diffusionLambdaControl">Diffusion λ <span id="diffusionLambdaValue">(0.4)</span></label>
+                        <input type="range" id="diffusionLambdaControl" min="0" max="1" step="0.05" value="0.4">
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" id="showDiffusionOverlay" checked>
+                            Visualiser carte ψ(s)
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label><input type="checkbox" id="enableDiffusionControl" checked> Activer diffusion</label>
+                        <label><input type="checkbox" id="enableClockControl" checked> Activer horloge</label>
+                        <label><input type="checkbox" id="enableProspectiveControl" checked> Activer prospective</label>
+                        <label><input type="checkbox" id="enableSurpriseControl" checked> Activer surprise</label>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Preset tuning</label>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            <button id="presetAggressiveBtn" type="button">Agressif</button>
+                            <button id="presetBalancedBtn" type="button">Équilibré</button>
+                            <button id="presetConservativeBtn" type="button">Conservateur</button>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <h3>Légende</h3>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: blue;"></div>
+                            Agent (Diag:Exploration)
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: black;"></div>
+                            Agent (Diag:Survie)
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: red;"></div>
+                            Obstacles
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: green;"></div>
+                            Récompenses (énergie)
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(255, 165, 0, 0.4);"></div>
+                            Chemin planifié (BFS)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="explanation">
+                    <h2>Fonctionnement ARVE - Phase F</h2>
+
+                    <h3>Phase F : Integration complete</h3>
+                    <p>Cette version consolide les phases B/C/D/E dans une meme boucle de decision continue.</p>
+
+                    <h3>Decision continue unifiee</h3>
+                    <p>L'agent evalue chaque action avec une utilite composee :</p>
+                    <code>U(a) = alpha(t) * [wI * I(a) + wS * eta(a)] - wc - wr * returnDebt - wPsi * psi(nextPos) + wk * kappa(a)</code>
+
+                    <h3>Diffusion spatiale ψ(s)</h3>
+                    <p>À chaque tick, la pénalité d'une cellule se propage à ses voisins :</p>
+                    <code>ψ(voisin) = max(ψ(voisin), ψ(source) × λ)</code>
+                    <p>Avec λ = 0.4 par défaut (ajustable). La diffusion crée des zones répulsives étendues, empêchant l'agent de reboucler sur des couloirs peu informatifs.</p>
+
+                    <h3>Diagnostic passif</h3>
+                    <p>L'indicateur "Diag:Exploration" / "Diag:Survie" reste affiché pour l'observabilité, mais ne pilote plus directement la décision.</p>
+
+                    <h3>Retour d'urgence</h3>
+                    <p>Si l'énergie devient critique et qu'une récompense connue est atteignable, l'agent force le retour vers cette récompense.</p>
+
+                    <h3>Propagation dynamique de valeurs</h3>
+                    <p>Chaque récompense découverte émet un champ d'attraction décroissant exponentiellement avec la distance BFS :</p>
+                    <code>V(s) = γ^d_bfs(s,r) × R(r)</code>
+
+                    <h3>Visualisation</h3>
+                    <p>La carte ψ(s) est affichée en overlay rouge semi-transparent (intensité proportionnelle à ψ). Vous pouvez désactiver la visualisation avec le checkbox.</p>
+
+                    <h3>Modules actifs</h3>
+                    <ul>
+                        <li><strong>Phase B</strong> : Diffusion spatiale psi(s)</li>
+                        <li><strong>Phase C</strong> : Horloge interne phi(t) et arousal alpha(t)</li>
+                        <li><strong>Phase D</strong> : Memoire prospective pi-hat (N-step)</li>
+                        <li><strong>Phase E</strong> : Surprise predictive eta(a)</li>
+                    </ul>
+
+                    <h3>Comparaison avec DVPA</h3>
+                    <p>Les mecanismes explicites N1/N2/N3 sont remplaces par des pressions continues combinees (diffusion, rythme interne, prospective, surprise).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modules métier hérités de DVPA -->
+    <script src="DVPA/world.js"></script>
+    <script src="DVPA/frontier-manager.js"></script>
+    <script src="DVPA/budget-manager.js"></script>
+    <script src="DVPA/threshold-manager.js"></script>
+
+    <!-- Modules ARVE Phases B/C/D/E -->
+    <script src="diffusion-manager.js"></script>
+    <script src="clock-manager.js"></script>
+    <script src="prospective-memory.js"></script>
+    <script src="surprise-estimator.js"></script>
+
+    <!-- Agent ARVE Phase F -->
+    <script src="arve-agent.js"></script>
+
+    <!-- Orchestrateur principal -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const canvas = document.getElementById('territory');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            const config = {
+                animationSpeed: 50,
+                stepSize: 5,
+                numObstacles: 2500,
+                numRewards: 30,
+                gamma: 0.9,
+                maxHealth: 500,
+                criticalHealthThreshold: 0.3,
+                energyCostPerStep: 1,
+                returnSafetyFactor: 1.15,
+                minAdaptiveThreshold: 0.15,
+                maxAdaptiveThreshold: 0.85,
+                thresholdDensityStep: 0.03,
+                maxThresholdDensityDiscount: 0.3,
+                enableL1: true,
+                enableL2: true,
+                enableL3: true,
+                utilityInfoWeight: 1,
+                utilityCostWeight: 0.35,
+                utilityReturnDebtWeight: 2.5,
+                utilityLowYieldWeight: 0.6,
+                lowYieldIncrement: 0.2,
+                lowYieldRelief: 0.25,
+                lowYieldRewardRelief: 1.2,
+                lowYieldMaxPenalty: 4,
+                lowYieldPassiveDecay: 0.01,
+                frontierRecomputeEvery: 2,
+                returnEmergencyMargin: 3,
+                maxSegmentLength: 50,
+                diffusionLambda: 0.4,
+                diffusionThreshold: 0.1,
+                diffusionMaxRadius: 3,
+                clockDrift: 0.05,
+                clockNoise: 0.005,
+                arousalMin: 0.2,
+                arousalMax: 0.9,
+                prospectiveBranches: 4,
+                prospectiveDepth: 3,
+                prospectiveGamma: 0.8,
+                prospectiveRecomputeEvery: 3,
+                utilitySurpriseWeight: 0.5,
+                utilityCoherenceWeight: 0.3,
+                utilityProspectiveHeadBias: 0.25,
+                surpriseRadius: 5,
+                surpriseDecay: 0.95,
+                enableDiffusion: true,
+                enableClock: true,
+                enableProspective: true,
+                enableSurprise: true
+            };
+
+            const speedControl = document.getElementById('speedControl');
+            const speedValue = document.getElementById('speedValue');
+            const lowYieldWeightControl = document.getElementById('lowYieldWeightControl');
+            const lowYieldWeightValue = document.getElementById('lowYieldWeightValue');
+            const lowYieldIncrementControl = document.getElementById('lowYieldIncrementControl');
+            const lowYieldIncrementValue = document.getElementById('lowYieldIncrementValue');
+            const lowYieldReliefControl = document.getElementById('lowYieldReliefControl');
+            const lowYieldReliefValue = document.getElementById('lowYieldReliefValue');
+            const diffusionLambdaControl = document.getElementById('diffusionLambdaControl');
+            const diffusionLambdaValue = document.getElementById('diffusionLambdaValue');
+            const showDiffusionOverlay = document.getElementById('showDiffusionOverlay');
+            const enableDiffusionControl = document.getElementById('enableDiffusionControl');
+            const enableClockControl = document.getElementById('enableClockControl');
+            const enableProspectiveControl = document.getElementById('enableProspectiveControl');
+            const enableSurpriseControl = document.getElementById('enableSurpriseControl');
+            const presetAggressiveBtn = document.getElementById('presetAggressiveBtn');
+            const presetBalancedBtn = document.getElementById('presetBalancedBtn');
+            const presetConservativeBtn = document.getElementById('presetConservativeBtn');
+
+            function updateSpeed(value) {
+                config.animationSpeed = 510 - (value * 5);
+                speedValue.textContent = `(${value}%)`;
+                clearInterval(moveInterval);
+                moveInterval = setInterval(() => {
+                    moveAgent();
+                    redrawAll();
+                }, config.animationSpeed);
+            }
+
+            speedValue.textContent = `(${speedControl.value}%)`;
+
+            speedControl.addEventListener('input', function() {
+                updateSpeed(this.value);
+            });
+
+            if (lowYieldWeightControl && lowYieldWeightValue) {
+                lowYieldWeightValue.textContent = `(${Number(config.utilityLowYieldWeight).toFixed(1)})`;
+                lowYieldWeightControl.addEventListener('input', function() {
+                    config.utilityLowYieldWeight = Number(this.value);
+                    lowYieldWeightValue.textContent = `(${Number(this.value).toFixed(1)})`;
+                });
+            }
+
+            if (lowYieldIncrementControl && lowYieldIncrementValue) {
+                lowYieldIncrementValue.textContent = `(${Number(config.lowYieldIncrement).toFixed(2)})`;
+                lowYieldIncrementControl.addEventListener('input', function() {
+                    config.lowYieldIncrement = Number(this.value);
+                    lowYieldIncrementValue.textContent = `(${Number(this.value).toFixed(2)})`;
+                });
+            }
+
+            if (lowYieldReliefControl && lowYieldReliefValue) {
+                lowYieldReliefValue.textContent = `(${Number(config.lowYieldRelief).toFixed(2)})`;
+                lowYieldReliefControl.addEventListener('input', function() {
+                    config.lowYieldRelief = Number(this.value);
+                    lowYieldReliefValue.textContent = `(${Number(this.value).toFixed(2)})`;
+                });
+            }
+
+            if (diffusionLambdaControl && diffusionLambdaValue) {
+                diffusionLambdaValue.textContent = `(${Number(config.diffusionLambda).toFixed(2)})`;
+                diffusionLambdaControl.addEventListener('input', function() {
+                    config.diffusionLambda = Number(this.value);
+                    diffusionLambdaValue.textContent = `(${Number(this.value).toFixed(2)})`;
+                    if (diffusionManager) {
+                        diffusionManager.diffusionLambda = Number(this.value);
+                    }
+                });
+            }
+
+            if (enableDiffusionControl) {
+                enableDiffusionControl.addEventListener('change', function() {
+                    config.enableDiffusion = this.checked;
+                });
+            }
+            if (enableClockControl) {
+                enableClockControl.addEventListener('change', function() {
+                    config.enableClock = this.checked;
+                    if (!this.checked) {
+                        elements.arousalDisplay.textContent = "-";
+                        elements.phaseDisplay.textContent = "-";
+                    }
+                });
+            }
+            if (enableProspectiveControl) {
+                enableProspectiveControl.addEventListener('change', function() {
+                    config.enableProspective = this.checked;
+                    if (!this.checked) {
+                        elements.prospectiveDisplay.textContent = "-";
+                    }
+                });
+            }
+            if (enableSurpriseControl) {
+                enableSurpriseControl.addEventListener('change', function() {
+                    config.enableSurprise = this.checked;
+                });
+            }
+
+            function applyLowYieldPreset(preset) {
+                config.utilityLowYieldWeight = preset.utilityLowYieldWeight;
+                config.lowYieldIncrement = preset.lowYieldIncrement;
+                config.lowYieldRelief = preset.lowYieldRelief;
+
+                if (lowYieldWeightControl && lowYieldWeightValue) {
+                    lowYieldWeightControl.value = String(preset.utilityLowYieldWeight);
+                    lowYieldWeightValue.textContent = `(${Number(preset.utilityLowYieldWeight).toFixed(1)})`;
+                }
+                if (lowYieldIncrementControl && lowYieldIncrementValue) {
+                    lowYieldIncrementControl.value = String(preset.lowYieldIncrement);
+                    lowYieldIncrementValue.textContent = `(${Number(preset.lowYieldIncrement).toFixed(2)})`;
+                }
+                if (lowYieldReliefControl && lowYieldReliefValue) {
+                    lowYieldReliefControl.value = String(preset.lowYieldRelief);
+                    lowYieldReliefValue.textContent = `(${Number(preset.lowYieldRelief).toFixed(2)})`;
+                }
+            }
+
+            if (presetAggressiveBtn) {
+                presetAggressiveBtn.addEventListener('click', () => {
+                    applyLowYieldPreset({
+                        utilityLowYieldWeight: 0.3,
+                        lowYieldIncrement: 0.1,
+                        lowYieldRelief: 0.35
+                    });
+                });
+            }
+
+            if (presetBalancedBtn) {
+                presetBalancedBtn.addEventListener('click', () => {
+                    applyLowYieldPreset({
+                        utilityLowYieldWeight: 0.6,
+                        lowYieldIncrement: 0.2,
+                        lowYieldRelief: 0.25
+                    });
+                });
+            }
+
+            if (presetConservativeBtn) {
+                presetConservativeBtn.addEventListener('click', () => {
+                    applyLowYieldPreset({
+                        utilityLowYieldWeight: 1.0,
+                        lowYieldIncrement: 0.35,
+                        lowYieldRelief: 0.2
+                    });
+                });
+            }
+
+            const world = new window.DVPAWorld(config, width, height);
+            const state = world.state;
+            state.adaptiveThreshold = config.criticalHealthThreshold;
+
+            // Phase B : création du diffusion-manager
+            const diffusionManager = new window.ARVEDiffusionManager(config, world);
+            const clockManager = new window.ARVEClockManager(config);
+            const prospectiveMemory = new window.ARVEProspectiveMemory(config, world);
+            const surpriseEstimator = new window.ARVESurpriseEstimator(config, world);
+
+            function drawAgent(x, y) {
+                ctx.fillStyle = agent.color;
+                ctx.fillRect(x, y, config.stepSize, config.stepSize);
+            }
+
+            function clearAgent(x, y) {
+                ctx.clearRect(x, y, config.stepSize, config.stepSize);
+            }
+
+            const elements = {
+                healthDisplay: document.getElementById('health'),
+                directionDisplay: document.getElementById('direction'),
+                stateValueDisplay: document.getElementById('stateValue'),
+                frontierDisplay: document.getElementById('frontierCount'),
+                diffusionDisplay: document.getElementById('diffusionCount'),
+                arousalDisplay: document.getElementById('arousalValue'),
+                phaseDisplay: document.getElementById('phaseValue'),
+                prospectiveDisplay: document.getElementById('prospectiveHead'),
+                tooltip: createTooltip(),
+            };
+
+            let isRunning = true;
+            let moveInterval;
+
+            const playPauseBtn = document.getElementById('playPauseBtn');
+
+            function toggleSimulation() {
+                if (isRunning) {
+                    clearInterval(moveInterval);
+                    playPauseBtn.textContent = 'Play';
+                } else {
+                    moveInterval = setInterval(() => {
+                        moveAgent();
+                        redrawAll();
+                    }, config.animationSpeed);
+                    playPauseBtn.textContent = 'Pause';
+                }
+                isRunning = !isRunning;
+            }
+
+            playPauseBtn.addEventListener('click', toggleSimulation);
+
+            function stopSimulation() {
+                clearInterval(moveInterval);
+                isRunning = false;
+                playPauseBtn.textContent = 'Play';
+            }
+
+            const agent = new window.ARVEAgent(
+                Math.floor((width / config.stepSize) / 2) * config.stepSize,
+                Math.floor((height / config.stepSize) / 2) * config.stepSize,
+                config.maxHealth,
+                'blue',
+                config,
+                width,
+                height,
+                world,
+                elements,
+                drawAgent,
+                clearAgent,
+                discoverSurroundings,
+                stopSimulation,
+                new window.DVPABudgetManager(config, width, height, world),
+                new window.DVPAThresholdManager(config),
+                new window.DVPAFrontierManager(config, world),
+                diffusionManager,
+                clockManager,
+                prospectiveMemory,
+                surpriseEstimator
+            );
+
+            function createTooltip() {
+                const tooltip = document.createElement('div');
+                tooltip.style.position = 'absolute';
+                tooltip.style.padding = '5px';
+                tooltip.style.background = 'rgba(0, 0, 0, 0.7)';
+                tooltip.style.color = 'white';
+                tooltip.style.borderRadius = '3px';
+                tooltip.style.fontSize = '12px';
+                tooltip.style.pointerEvents = 'none';
+                tooltip.style.display = 'none';
+                document.body.appendChild(tooltip);
+                return tooltip;
+            }
+
+            function drawObstacle(x, y) {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(x, y, config.stepSize, config.stepSize);
+            }
+
+            function drawReward(x, y) {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(x, y, config.stepSize, config.stepSize);
+            }
+
+            function discoverSurroundings() {
+                const discoveries = world.discoverSurroundings({ x: agent.x, y: agent.y });
+                discoveries.rewards.forEach((reward) => drawReward(reward.x, reward.y));
+                discoveries.obstacles.forEach((obstacle) => drawObstacle(obstacle.x, obstacle.y));
+                return discoveries;
+            }
+
+            function moveAgent() {
+                agent.move();
+
+                // Phase B : mise à jour du nombre de cellules diffusées
+                if (config.enableDiffusion && diffusionManager && elements.diffusionDisplay) {
+                    const activeCells = diffusionManager.getActiveCellsCount();
+                    elements.diffusionDisplay.textContent = String(activeCells);
+                } else if (elements.diffusionDisplay) {
+                    elements.diffusionDisplay.textContent = "-";
+                }
+            }
+
+            function drawGrid() {
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                for (let x = 0; x <= width; x += config.stepSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, height);
+                    ctx.stroke();
+                }
+                for (let y = 0; y <= height; y += config.stepSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+            }
+
+            function redrawAll() {
+                ctx.clearRect(0, 0, width, height);
+                drawGrid();
+
+                // Phase B : overlay diffusion si activé
+                if (config.enableDiffusion && showDiffusionOverlay && showDiffusionOverlay.checked) {
+                    drawDiffusionOverlay();
+                }
+
+                state.discoveredObstacles.forEach(obstacle => drawObstacle(obstacle.x, obstacle.y));
+                state.discoveredRewards.forEach(reward => drawReward(reward.x, reward.y));
+                if (state.modeSurvival && state.currentPath && state.currentPath.length > 0) {
+                    drawPath();
+                }
+                drawAgent(agent.x, agent.y);
+            }
+
+            function drawPath() {
+                if (state.currentPath.length > 0) {
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255, 165, 0, 0.4)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(agent.x + config.stepSize / 2, agent.y + config.stepSize / 2);
+                    state.currentPath.forEach(step => {
+                        ctx.lineTo(step.x + config.stepSize / 2, step.y + config.stepSize / 2);
+                    });
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            // Phase B : visualisation de la carte de diffusion ψ(s)
+            function drawDiffusionOverlay() {
+                if (!diffusionManager) return;
+
+                const penalties = diffusionManager.getAllPenalties();
+                if (penalties.size === 0) return;
+
+                ctx.save();
+                for (const [key, value] of penalties.entries()) {
+                    const position = world.fromKey(key);
+                    // Intensité rouge proportionnelle à ψ, normalisée par maxPenalty
+                    const intensity = Math.min(value / config.lowYieldMaxPenalty, 1);
+                    const alpha = intensity * 0.4; // Max 40% opacité
+                    ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
+                    ctx.fillRect(position.x, position.y, config.stepSize, config.stepSize);
+                }
+                ctx.restore();
+            }
+
+            function getMousePos(canvas, evt) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: evt.clientX - rect.left,
+                    y: evt.clientY - rect.top
+                };
+            }
+
+            canvas.addEventListener('mousemove', (event) => {
+                const mousePos = getMousePos(canvas, event);
+                const gridX = Math.floor(mousePos.x / config.stepSize);
+                const gridY = Math.floor(mousePos.y / config.stepSize);
+
+                if (gridX >= 0 && gridX < width / config.stepSize && gridY >= 0 && gridY < height / config.stepSize) {
+                    const stateValue = state.stateValues[gridX][gridY];
+                    let displayValue;
+                    if (stateValue === Infinity) {
+                        displayValue = "∞ (Récompense)";
+                    } else {
+                        displayValue = stateValue.toFixed(2);
+                    }
+                    elements.tooltip.textContent = `Valeur d'état: ${displayValue}`;
+                    elements.tooltip.style.left = `${event.pageX + 10}px`;
+                    elements.tooltip.style.top = `${event.pageY + 10}px`;
+                    elements.tooltip.style.display = 'block';
+                } else {
+                    elements.tooltip.style.display = 'none';
+                }
+            });
+
+            canvas.addEventListener('mouseout', () => {
+                elements.tooltip.style.display = 'none';
+            });
+
+            world.generateObstaclesAndRewards();
+            discoverSurroundings();
+            drawGrid();
+            drawAgent(agent.x, agent.y);
+
+            moveInterval = setInterval(() => {
+                moveAgent();
+                redrawAll();
+            }, config.animationSpeed);
+        });
+    </script>
+</body>
+</html>
+
+
+
