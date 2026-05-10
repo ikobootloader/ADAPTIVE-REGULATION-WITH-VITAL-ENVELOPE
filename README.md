@@ -104,10 +104,14 @@ node benchmark.js --full              # Tous modules actifs
 - Rendu optimisé : caches d'overlays recalculés par tick et grille Canvas précalculée
 - Passe ultra-perf : mise à jour incrémentale des caches basée sur les cellules nouvellement découvertes
 - Passe perf ciblée revisites : cache dédié des cellules revisitées et exclusion obstacle/récompense sans reconstruction complète par frame
-- Passe 4 revisites : décroissance lazy O(1) des visites dans `DVPA/world.js` + lecture optimisée côté overlay
+- Passe 4 revisites : décroissance lazy O(1) des visites dans `arve-world.js` + lecture optimisée côté overlay
 - Explanation UI enrichie : parcours "débutant + expert", cycle de décision, lecture des stats/overlays et glossaire
 - Micro-UX explanation : blocs visuels différenciés débutant/expert, synthèse rapide et présentation orientée modèle ARVE global
 - Densification pédagogique : scénarios concrets "si X alors Y" et méthode rapide de lecture des décisions
+- Commentaires techniques renforcés sur les fonctions critiques pour faciliter maintenance et onboarding
+- Runtime ARVE autonome : l'application ARVE ne charge plus de modules depuis `DVPA/`
+- Organisation code : modules JavaScript ARVE regroupés dans le répertoire `js/`
+- API globale nettoyée : suppression des alias de transition `DVPA*`, exposition `ARVE*` uniquement
 
 ## Hypothèses fondatrices
 

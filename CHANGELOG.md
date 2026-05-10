@@ -18,6 +18,10 @@ Le format est basÃ© sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0
 - Zone explanation enrichie pour double audience (débutant + expert) : cycle par tick, lecture stats/overlays et glossaire
 - Passe micro-UX explanation : sections visuelles distinctes (débutant/expert), synthèse rapide et recentrage sur le modèle ARVE global (sans focalisation phase)
 - Passe rédactionnelle pédagogique : ajout d'exemples concrets "si X alors Y" + grille de lecture décisionnelle en 3 questions
+- Commentaires de code renforcés sur les fonctions clés (orchestrateur overlays, caches incrémentaux, BFS multi-source, lazy decay revisites)
+- Découplage runtime ARVE/DVPA : nouveaux modules `arve-world.js`, `arve-frontier-manager.js`, `arve-budget-manager.js`, `arve-threshold-manager.js` + recâblage `index.html` et `benchmark.js`
+- Réorganisation structurelle : modules JavaScript ARVE déplacés dans `js/` et chemins de chargement mis à jour
+- Nettoyage API : retrait des alias globaux `DVPA*` dans les modules ARVE, conservation des noms `ARVE*` uniquement
 
 ---
 

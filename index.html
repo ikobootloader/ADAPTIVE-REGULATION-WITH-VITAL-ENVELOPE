@@ -624,20 +624,20 @@
         </div>
     </div>
 
-    <!-- Modules métier hérités de DVPA -->
-    <script src="DVPA/world.js"></script>
-    <script src="DVPA/frontier-manager.js"></script>
-    <script src="DVPA/budget-manager.js"></script>
-    <script src="DVPA/threshold-manager.js"></script>
+    <!-- Modules métier ARVE autonomes -->
+    <script src="js/arve-world.js"></script>
+    <script src="js/arve-frontier-manager.js"></script>
+    <script src="js/arve-budget-manager.js"></script>
+    <script src="js/arve-threshold-manager.js"></script>
 
     <!-- Modules ARVE Phases B/C/D/E -->
-    <script src="diffusion-manager.js"></script>
-    <script src="clock-manager.js"></script>
-    <script src="prospective-memory.js"></script>
-    <script src="surprise-estimator.js"></script>
+    <script src="js/diffusion-manager.js"></script>
+    <script src="js/clock-manager.js"></script>
+    <script src="js/prospective-memory.js"></script>
+    <script src="js/surprise-estimator.js"></script>
 
     <!-- Agent ARVE Phase F -->
-    <script src="arve-agent.js"></script>
+    <script src="js/arve-agent.js"></script>
 
     <!-- Orchestrateur principal -->
     <script>
@@ -849,7 +849,7 @@
                 });
             }
 
-            const world = new window.DVPAWorld(config, width, height);
+            const world = new window.ARVEWorld(config, width, height);
             const state = world.state;
             state.adaptiveThreshold = config.criticalHealthThreshold;
             const gridLayer = document.createElement('canvas');
@@ -884,15 +884,23 @@
                 tooltip: createTooltip(),
             };
             const overlayCache = {
+                // Tick de synchronisation: évite les recalculs multiples dans la même frame logique.
                 tickId: -1,
+                // Frontières classées côté agent (fallback: recompute manager).
                 frontiers: [],
+                // Distance topologique minimale vers une récompense connue pour chaque cellule découverte.
                 nearestRewardDistanceByKey: new Map(),
+                // Intensité de surprise par cellule + max global pour normalisation visuelle.
                 surpriseByKey: new Map(),
                 surpriseMax: 0,
+                // Cache incrémental: nombre de voisins inconnus par cellule découverte.
                 unknownNeighborsByKey: new Map(),
+                // Sets persistants pour filtrer rapidement obstacles/récompenses lors du rendu des revisites.
                 obstacleKeys: new Set(),
                 rewardKeys: new Set(),
+                // Entrées prêtes à peindre pour l'overlay des revisites.
                 revisitedEntries: [],
+                // Signatures topologiques minimales pour invalider proprement les caches.
                 rewardCount: 0,
                 obstacleCount: 0,
                 priorSignature: ""
@@ -939,9 +947,9 @@
                 clearAgent,
                 discoverSurroundings,
                 stopSimulation,
-                new window.DVPABudgetManager(config, width, height, world),
-                new window.DVPAThresholdManager(config),
-                new window.DVPAFrontierManager(config, world),
+                new window.ARVEBudgetManager(config, width, height, world),
+                new window.ARVEThresholdManager(config),
+                new window.ARVEFrontierManager(config, world),
                 diffusionManager,
                 clockManager,
                 prospectiveMemory,
@@ -1011,6 +1019,7 @@
 
             function redrawAll() {
                 ctx.clearRect(0, 0, width, height);
+                // Synchronise les caches une fois par tick avant toute passe de rendu.
                 refreshOverlayCaches();
                 ctx.drawImage(gridLayer, 0, 0);
 
@@ -1153,6 +1162,7 @@
                 const topologyChanged = hasTopologyChanged(newCellKeys);
 
                 if (topologyChanged) {
+                    // Les structures dépendantes de la topologie connue sont recalculées uniquement si nécessaire.
                     rebuildStaticOverlaySets();
                     overlayCache.nearestRewardDistanceByKey = computeNearestRewardDistanceMap();
                     syncKnownDiscoveredKeys(newCellKeys);
@@ -1189,6 +1199,7 @@
                     return;
                 }
 
+                // La décroissance est fournie par world.forEachVisitedPosition (lazy decay), l'UI ne fait que projeter.
                 world.forEachVisitedPosition((key, visitCount) => {
                     if (visitCount <= 1) return;
                     if (overlayCache.obstacleKeys.has(key) || overlayCache.rewardKeys.has(key)) return;
@@ -1201,6 +1212,8 @@
             }
 
             function computeNearestRewardDistanceMap() {
+                // BFS multi-source depuis toutes les récompenses connues:
+                // permet un coût de retour constant en lecture pendant le rendu.
                 const distances = new Map();
                 const queue = [];
                 const obstacleKeys = new Set(state.discoveredObstacles.map(obstacle => world.toKey(obstacle.x, obstacle.y)));
@@ -1237,6 +1250,7 @@
                 }
 
                 if (overlayCache.unknownNeighborsByKey.size === 0) {
+                    // Initialisation complète une seule fois.
                     for (const key of state.discoveredCells.values()) {
                         const [x, y] = world.fromKey(key);
                         overlayCache.unknownNeighborsByKey.set(key, countUnknownNeighborsAt(x, y));
@@ -1244,6 +1258,7 @@
                     return;
                 }
 
+                // Mise à jour locale: nouvelle cellule + voisins directs (zone réellement impactée).
                 const impacted = new Set();
                 for (const key of newCellKeys) {
                     impacted.add(key);
@@ -1286,6 +1301,7 @@
                 }
 
                 if (!topologyChanged && overlayCache.priorSignature === priorSignature && overlayCache.surpriseByKey.size > 0) {
+                    // Cas stable: on conserve la map et on ne recalcule que le max de normalisation.
                     for (const surprise of overlayCache.surpriseByKey.values()) {
                         if (surprise > overlayCache.surpriseMax) {
                             overlayCache.surpriseMax = surprise;
