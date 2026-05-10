@@ -308,6 +308,53 @@
             font-weight: 600;
             margin-left: 12px;
         }
+
+        .audience-block {
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border: 1px solid #dee2e6;
+        }
+
+        .audience-block h4 {
+            font-size: 14px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .audience-beginner {
+            background: #f4f9f6;
+            border-left: 4px solid #2f855a;
+        }
+
+        .audience-beginner h4 {
+            color: #2f855a;
+        }
+
+        .audience-expert {
+            background: #f4f7fb;
+            border-left: 4px solid #2b6cb0;
+        }
+
+        .audience-expert h4 {
+            color: #2b6cb0;
+        }
+
+        .key-takeaways {
+            background: #fff8e8;
+            border: 1px solid #f0d9a6;
+            border-left: 4px solid #d69e2e;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+
+        .key-takeaways h4 {
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #9c6b00;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -399,6 +446,22 @@
                             <input type="checkbox" id="showDiffusionOverlay" checked>
                             Visualiser carte ψ(s)
                         </label>
+                        <label>
+                            <input type="checkbox" id="showRevisitedOverlay" checked>
+                            Visualiser zones revisitées
+                        </label>
+                        <label>
+                            <input type="checkbox" id="showFrontierOverlay" checked>
+                            Visualiser frontières
+                        </label>
+                        <label>
+                            <input type="checkbox" id="showReturnDebtOverlay" checked>
+                            Visualiser coût de retour
+                        </label>
+                        <label>
+                            <input type="checkbox" id="showSurpriseOverlay" checked>
+                            Visualiser surprise locale η
+                        </label>
                     </div>
 
                     <div class="control-group">
@@ -439,47 +502,123 @@
                             <div class="legend-color" style="background: rgba(255, 165, 0, 0.4);"></div>
                             Chemin planifié (BFS)
                         </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(0, 140, 255, 0.35);"></div>
+                            Zones revisitées
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(200, 0, 255, 0.35);"></div>
+                            Frontières détectées
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(255, 191, 0, 0.45);"></div>
+                            Coût de retour (ambre → brun)
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(0, 220, 200, 0.35);"></div>
+                            Surprise locale η
+                        </div>
                     </div>
                 </div>
 
                 <div class="explanation">
-                    <h2>Fonctionnement ARVE - Phase F</h2>
+                    <h2>Comprendre le modèle ARVE</h2>
 
-                    <h3>Phase F : Integration complete</h3>
-                    <p>Cette version consolide les phases B/C/D/E dans une meme boucle de decision continue.</p>
+                    <h3>Pourquoi ce projet existe</h3>
+                    <p>ARVE explore une idée simple : un agent autonome peut rester robuste sans apprentissage lourd, en combinant plusieurs pressions locales continues plutôt qu'un empilement de règles conditionnelles.</p>
 
-                    <h3>Decision continue unifiee</h3>
-                    <p>L'agent evalue chaque action avec une utilite composee :</p>
-                    <code>U(a) = alpha(t) * [wI * I(a) + wS * eta(a)] - wc - wr * returnDebt - wPsi * psi(nextPos) + wk * kappa(a)</code>
+                    <div class="key-takeaways">
+                        <h4>À retenir en 20 secondes</h4>
+                        <ul>
+                            <li>ARVE ne bascule pas entre des modes rigides : il ajuste continuellement ses choix.</li>
+                            <li>Les décisions combinent exploration, contrainte énergétique, mémoire spatiale et rythme interne.</li>
+                            <li>Les overlays servent d'explication visuelle du raisonnement local de l'agent.</li>
+                        </ul>
+                    </div>
 
-                    <h3>Diffusion spatiale ψ(s)</h3>
-                    <p>À chaque tick, la pénalité d'une cellule se propage à ses voisins :</p>
-                    <code>ψ(voisin) = max(ψ(voisin), ψ(source) × λ)</code>
-                    <p>Avec λ = 0.4 par défaut (ajustable). La diffusion crée des zones répulsives étendues, empêchant l'agent de reboucler sur des couloirs peu informatifs.</p>
+                    <div class="audience-block audience-beginner">
+                        <h4>Lecture débutant</h4>
+                        <p>L'agent se déplace case par case pour découvrir la carte, éviter les boucles peu utiles et revenir à une récompense quand son énergie devient risquée. Il n'attend pas un "mode urgence" strict : il ajuste ses priorités en continu selon le contexte local.</p>
+                        <ul>
+                            <li><strong>Objectif pratique</strong> : découvrir un maximum de zones utiles sans tomber à court d'énergie.</li>
+                            <li><strong>Ce qui guide le mouvement</strong> : curiosité locale, coût énergétique, mémoire de zones froides, rythme interne et cohérence de trajectoire.</li>
+                            <li><strong>Ce que vous voyez à l'écran</strong> : des couches visuelles activables qui expliquent pourquoi l'agent choisit une direction.</li>
+                        </ul>
+                    </div>
 
-                    <h3>Diagnostic passif</h3>
-                    <p>L'indicateur "Diag:Exploration" / "Diag:Survie" reste affiché pour l'observabilité, mais ne pilote plus directement la décision.</p>
+                    <div class="audience-block audience-expert">
+                        <h4>Lecture experte</h4>
+                        <p>La décision est formulée comme une utilité continue par action candidate :</p>
+                        <code>U(a) = alpha(t) * [wI * I(a) + wS * eta(a)] - wc - wr * returnDebt - wPsi * psi(nextPos) + wk * kappa(a)</code>
+                        <p>Interprétation compacte : exploration pondérée par arousal, pénalisation du risque de retour, aversion aux zones déjà peu productives, biais de cohérence directionnelle et correction locale via surprise/prospective.</p>
+                    </div>
 
-                    <h3>Retour d'urgence</h3>
-                    <p>Si l'énergie devient critique et qu'une récompense connue est atteignable, l'agent force le retour vers cette récompense.</p>
+                    <h3>Cycle d'exécution à chaque tick</h3>
+                    <ol>
+                        <li>Perception locale (cellule courante + voisinage) et mise à jour des cellules connues.</li>
+                        <li>Propagation des valeurs d'état et mise à jour des champs dynamiques (diffusion, horloge, surprise, prospective).</li>
+                        <li>Évaluation des actions valides avec utilité continue, puis sélection de la meilleure action.</li>
+                        <li>Application du garde-fou énergétique : retour forcé BFS si la marge de sécurité devient critique.</li>
+                    </ol>
 
-                    <h3>Propagation dynamique de valeurs</h3>
-                    <p>Chaque récompense découverte émet un champ d'attraction décroissant exponentiellement avec la distance BFS :</p>
-                    <code>V(s) = γ^d_bfs(s,r) × R(r)</code>
-
-                    <h3>Visualisation</h3>
-                    <p>La carte ψ(s) est affichée en overlay rouge semi-transparent (intensité proportionnelle à ψ). Vous pouvez désactiver la visualisation avec le checkbox.</p>
-
-                    <h3>Modules actifs</h3>
+                    <h3>Architecture fonctionnelle du modèle</h3>
                     <ul>
-                        <li><strong>Phase B</strong> : Diffusion spatiale psi(s)</li>
-                        <li><strong>Phase C</strong> : Horloge interne phi(t) et arousal alpha(t)</li>
-                        <li><strong>Phase D</strong> : Memoire prospective pi-hat (N-step)</li>
-                        <li><strong>Phase E</strong> : Surprise predictive eta(a)</li>
+                        <li><strong>Monde / valeurs</strong> : découverte locale de la carte + propagation des attracteurs de récompense.</li>
+                        <li><strong>Budget énergétique</strong> : estimation du risque de retour et garde-fou de survie.</li>
+                        <li><strong>Diffusion psi(s)</strong> : mémoire spatiale des zones peu informatives.</li>
+                        <li><strong>Horloge interne phi(t), alpha(t)</strong> : modulation rythmique de l'intensité d'exploration.</li>
+                        <li><strong>Mémoire prospective pi-hat</strong> : projection courte de trajectoires candidates.</li>
+                        <li><strong>Surprise eta(a)</strong> : bonus contextuel de nouveauté locale.</li>
+                    </ul>
+                    <p>Le retour d'urgence BFS reste actif : si le budget devient critique, la trajectoire vers une récompense connue est priorisée pour maintenir la survie.</p>
+
+                    <h3>Guide de lecture des statistiques</h3>
+                    <ul>
+                        <li><strong>Énergie</strong> : réserve actuelle, contrainte principale de longévité.</li>
+                        <li><strong>Mode actuel</strong> : diagnostic d'état (observabilité), pas un switch logique dur.</li>
+                        <li><strong>Valeur d'état</strong> : potentiel local issu de la propagation des récompenses.</li>
+                        <li><strong>Frontières</strong> : volume de cellules connues bordant l'inconnu.</li>
+                        <li><strong>Arousal alpha / Phase phi</strong> : modulation rythmique interne de la prise de décision.</li>
+                        <li><strong>Head prospective</strong> : première action recommandée par la projection N-step.</li>
+                    </ul>
+
+                    <h3>Guide de lecture visuelle</h3>
+                    <p>Chaque couche est activable individuellement : diffusion (rouge transparent), zones revisitées (bleu), frontières (violet), coût de retour (ambre vers brun) et surprise locale (cyan). Obstacles, récompenses et agent restent prioritaires au premier plan.</p>
+                    <ul>
+                        <li><strong>Diffusion ψ(s)</strong> : montre les zones "froides" qui repoussent l'agent.</li>
+                        <li><strong>Revisites</strong> : visualise les zones où l'agent a tendance à repasser souvent.</li>
+                        <li><strong>Frontières</strong> : cible l'interface connu/inconnu, utile pour l'expansion.</li>
+                        <li><strong>Coût de retour</strong> : met en évidence les positions énergétiquement risquées.</li>
+                        <li><strong>Surprise η</strong> : signale les zones où la nouveauté locale attendue est la plus utile.</li>
+                    </ul>
+
+                    <h3>Exemples concrets (si X, alors Y)</h3>
+                    <ul>
+                        <li><strong>Si</strong> plusieurs directions sont possibles mais qu'une direction traverse une zone rouge ψ(s) intense, <strong>alors</strong> l'agent favorisera souvent une alternative moins pénalisée.</li>
+                        <li><strong>Si</strong> l'énergie baisse et que l'overlay coût de retour devient dense autour de l'agent, <strong>alors</strong> la trajectoire vers une récompense connue prend du poids, jusqu'au retour d'urgence BFS.</li>
+                        <li><strong>Si</strong> deux options semblent proches en utilité mais qu'une est alignée avec la direction précédente, <strong>alors</strong> le bonus de cohérence peut départager en faveur de cette continuité.</li>
+                        <li><strong>Si</strong> des cellules frontières violettes apparaissent avec peu de revisites bleues, <strong>alors</strong> l'agent est dans une dynamique d'expansion efficace du connu vers l'inconnu.</li>
+                        <li><strong>Si</strong> une zone cyan (surprise η) est active près du front d'exploration, <strong>alors</strong> l'agent a davantage de chance de tenter cette direction car le gain de nouveauté attendu augmente.</li>
+                        <li><strong>Si</strong> une boucle locale apparaît (bleu qui se renforce) sans nouvelles découvertes, <strong>alors</strong> la diffusion ψ(s) et la prospective finissent généralement par créer une échappée vers une autre branche.</li>
+                    </ul>
+
+                    <h3>Comment lire une décision en 3 questions</h3>
+                    <ol>
+                        <li>La direction choisie réduit-elle un risque énergétique immédiat (coût de retour) ?</li>
+                        <li>Évite-t-elle une zone froide déjà sur-exploitée (diffusion + revisites) ?</li>
+                        <li>Ajoute-t-elle de la valeur exploratoire (frontière, surprise, cohérence prospective) ?</li>
+                    </ol>
+
+                    <h3>Glossaire minimal</h3>
+                    <ul>
+                        <li><strong>Frontière</strong> : cellule connue adjacente à au moins une cellule inconnue.</li>
+                        <li><strong>Diffusion ψ</strong> : pénalité spatiale qui se propage avec atténuation λ.</li>
+                        <li><strong>Prospective</strong> : simulation courte de trajectoires candidates.</li>
+                        <li><strong>Surprise η</strong> : bonus de nouveauté contextuelle estimé localement.</li>
                     </ul>
 
                     <h3>Comparaison avec DVPA</h3>
-                    <p>Les mecanismes explicites N1/N2/N3 sont remplaces par des pressions continues combinees (diffusion, rythme interne, prospective, surprise).</p>
+                    <p>ARVE remplace les mécanismes explicites N1/N2/N3 par des pressions continues combinées (diffusion, rythme interne, prospective, surprise), pour obtenir un comportement plus fluide, plus explicable visuellement et plus robuste localement.</p>
                 </div>
             </div>
         </div>
@@ -570,6 +709,10 @@
             const diffusionLambdaControl = document.getElementById('diffusionLambdaControl');
             const diffusionLambdaValue = document.getElementById('diffusionLambdaValue');
             const showDiffusionOverlay = document.getElementById('showDiffusionOverlay');
+            const showRevisitedOverlay = document.getElementById('showRevisitedOverlay');
+            const showFrontierOverlay = document.getElementById('showFrontierOverlay');
+            const showReturnDebtOverlay = document.getElementById('showReturnDebtOverlay');
+            const showSurpriseOverlay = document.getElementById('showSurpriseOverlay');
             const enableDiffusionControl = document.getElementById('enableDiffusionControl');
             const enableClockControl = document.getElementById('enableClockControl');
             const enableProspectiveControl = document.getElementById('enableProspectiveControl');
@@ -709,6 +852,10 @@
             const world = new window.DVPAWorld(config, width, height);
             const state = world.state;
             state.adaptiveThreshold = config.criticalHealthThreshold;
+            const gridLayer = document.createElement('canvas');
+            gridLayer.width = width;
+            gridLayer.height = height;
+            const gridCtx = gridLayer.getContext('2d');
 
             // Phase B : création du diffusion-manager
             const diffusionManager = new window.ARVEDiffusionManager(config, world);
@@ -735,6 +882,20 @@
                 phaseDisplay: document.getElementById('phaseValue'),
                 prospectiveDisplay: document.getElementById('prospectiveHead'),
                 tooltip: createTooltip(),
+            };
+            const overlayCache = {
+                tickId: -1,
+                frontiers: [],
+                nearestRewardDistanceByKey: new Map(),
+                surpriseByKey: new Map(),
+                surpriseMax: 0,
+                unknownNeighborsByKey: new Map(),
+                obstacleKeys: new Set(),
+                rewardKeys: new Set(),
+                revisitedEntries: [],
+                rewardCount: 0,
+                obstacleCount: 0,
+                priorSignature: ""
             };
 
             let isRunning = true;
@@ -820,6 +981,7 @@
 
             function moveAgent() {
                 agent.move();
+                refreshOverlayCaches();
 
                 // Phase B : mise à jour du nombre de cellules diffusées
                 if (config.enableDiffusion && diffusionManager && elements.diffusionDisplay) {
@@ -831,28 +993,42 @@
             }
 
             function drawGrid() {
-                ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                gridCtx.clearRect(0, 0, width, height);
+                gridCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
                 for (let x = 0; x <= width; x += config.stepSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, height);
-                    ctx.stroke();
+                    gridCtx.beginPath();
+                    gridCtx.moveTo(x, 0);
+                    gridCtx.lineTo(x, height);
+                    gridCtx.stroke();
                 }
                 for (let y = 0; y <= height; y += config.stepSize) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(width, y);
-                    ctx.stroke();
+                    gridCtx.beginPath();
+                    gridCtx.moveTo(0, y);
+                    gridCtx.lineTo(width, y);
+                    gridCtx.stroke();
                 }
             }
 
             function redrawAll() {
                 ctx.clearRect(0, 0, width, height);
-                drawGrid();
+                refreshOverlayCaches();
+                ctx.drawImage(gridLayer, 0, 0);
 
                 // Phase B : overlay diffusion si activé
                 if (config.enableDiffusion && showDiffusionOverlay && showDiffusionOverlay.checked) {
                     drawDiffusionOverlay();
+                }
+                if (showRevisitedOverlay && showRevisitedOverlay.checked) {
+                    drawRevisitedOverlay();
+                }
+                if (showFrontierOverlay && showFrontierOverlay.checked) {
+                    drawFrontierOverlay();
+                }
+                if (showReturnDebtOverlay && showReturnDebtOverlay.checked) {
+                    drawReturnDebtOverlay();
+                }
+                if (showSurpriseOverlay && showSurpriseOverlay.checked) {
+                    drawSurpriseOverlay();
                 }
 
                 state.discoveredObstacles.forEach(obstacle => drawObstacle(obstacle.x, obstacle.y));
@@ -897,6 +1073,258 @@
                 ctx.restore();
             }
 
+            function drawRevisitedOverlay() {
+                if (!overlayCache.revisitedEntries || overlayCache.revisitedEntries.length === 0) return;
+
+                ctx.save();
+                for (const entry of overlayCache.revisitedEntries) {
+                    ctx.fillStyle = `rgba(0, 140, 255, ${entry.alpha})`;
+                    ctx.fillRect(entry.x, entry.y, config.stepSize, config.stepSize);
+                }
+                ctx.restore();
+            }
+
+            function drawFrontierOverlay() {
+                const frontiers = overlayCache.frontiers;
+                if (!frontiers || frontiers.length === 0) return;
+
+                ctx.save();
+                for (const frontier of frontiers) {
+                    const normalized = Math.min((frontier.unknownNeighbors || 0) / 4, 1);
+                    const alpha = 0.14 + (normalized * 0.26);
+                    ctx.fillStyle = `rgba(200, 0, 255, ${alpha})`;
+                    ctx.fillRect(frontier.x, frontier.y, config.stepSize, config.stepSize);
+                }
+                ctx.restore();
+            }
+
+            function drawReturnDebtOverlay() {
+                if (!state.discoveredCells || state.discoveredCells.size === 0 || overlayCache.nearestRewardDistanceByKey.size === 0) {
+                    return;
+                }
+
+                ctx.save();
+                for (const [cellKey, distance] of overlayCache.nearestRewardDistanceByKey.entries()) {
+                    if (!Number.isFinite(distance)) {
+                        continue;
+                    }
+                    const requiredEnergy = distance * config.energyCostPerStep * config.returnSafetyFactor;
+                    const debt = Math.max(0, (requiredEnergy - agent.health) / config.maxHealth);
+                    if (debt <= 0) {
+                        continue;
+                    }
+                    const normalized = Math.min(debt, 1);
+                    const [x, y] = world.fromKey(cellKey);
+                    const hue = 40 - (normalized * 20);
+                    const alpha = 0.10 + (normalized * 0.32);
+                    ctx.fillStyle = `hsla(${hue}, 95%, 45%, ${alpha})`;
+                    ctx.fillRect(x, y, config.stepSize, config.stepSize);
+                }
+                ctx.restore();
+            }
+
+            function drawSurpriseOverlay() {
+                if (!state.discoveredCells || state.discoveredCells.size === 0 || overlayCache.surpriseByKey.size === 0) {
+                    return;
+                }
+
+                ctx.save();
+                const maxSurprise = overlayCache.surpriseMax > 0 ? overlayCache.surpriseMax : 1;
+                for (const [cellKey, surprise] of overlayCache.surpriseByKey.entries()) {
+                    const [x, y] = world.fromKey(cellKey);
+                    const normalized = Math.min(surprise / maxSurprise, 1);
+                    const alpha = 0.08 + (normalized * 0.27);
+                    ctx.fillStyle = `rgba(0, 220, 200, ${alpha})`;
+                    ctx.fillRect(x, y, config.stepSize, config.stepSize);
+                }
+                ctx.restore();
+            }
+
+            function refreshOverlayCaches() {
+                if (!world || !state || overlayCache.tickId === state.tickId) {
+                    return;
+                }
+
+                overlayCache.tickId = state.tickId;
+                overlayCache.frontiers = agent && Array.isArray(agent.lastRankedFrontiers) && agent.lastRankedFrontiers.length > 0
+                    ? agent.lastRankedFrontiers
+                    : agent.frontierManager.computeFrontiers();
+                const newCellKeys = Array.isArray(state.lastDiscoveredCells) ? state.lastDiscoveredCells : [];
+                const topologyChanged = hasTopologyChanged(newCellKeys);
+
+                if (topologyChanged) {
+                    rebuildStaticOverlaySets();
+                    overlayCache.nearestRewardDistanceByKey = computeNearestRewardDistanceMap();
+                    syncKnownDiscoveredKeys(newCellKeys);
+                    updateUnknownNeighborsIncremental(newCellKeys);
+                }
+
+                refreshRevisitedCache();
+                refreshSurpriseCache(topologyChanged);
+            }
+
+            function hasTopologyChanged(newCellKeys) {
+                return newCellKeys.length > 0
+                    || overlayCache.rewardCount !== state.discoveredRewards.length
+                    || overlayCache.obstacleCount !== state.discoveredObstacles.length;
+            }
+
+            function syncKnownDiscoveredKeys(newCellKeys) {
+                overlayCache.rewardCount = state.discoveredRewards.length;
+                overlayCache.obstacleCount = state.discoveredObstacles.length;
+            }
+
+            function rebuildStaticOverlaySets() {
+                overlayCache.obstacleKeys = new Set(
+                    state.discoveredObstacles.map(obstacle => world.toKey(obstacle.x, obstacle.y))
+                );
+                overlayCache.rewardKeys = new Set(
+                    state.discoveredRewards.map(reward => world.toKey(reward.x, reward.y))
+                );
+            }
+
+            function refreshRevisitedCache() {
+                overlayCache.revisitedEntries = [];
+                if (!state.visitedPositions || state.visitedPositions.size === 0 || typeof world.forEachVisitedPosition !== 'function') {
+                    return;
+                }
+
+                world.forEachVisitedPosition((key, visitCount) => {
+                    if (visitCount <= 1) return;
+                    if (overlayCache.obstacleKeys.has(key) || overlayCache.rewardKeys.has(key)) return;
+
+                    const [x, y] = world.fromKey(key);
+                    const normalized = Math.min((visitCount - 1) / 6, 1);
+                    const alpha = 0.08 + (normalized * 0.27);
+                    overlayCache.revisitedEntries.push({ x, y, alpha });
+                });
+            }
+
+            function computeNearestRewardDistanceMap() {
+                const distances = new Map();
+                const queue = [];
+                const obstacleKeys = new Set(state.discoveredObstacles.map(obstacle => world.toKey(obstacle.x, obstacle.y)));
+
+                for (const reward of state.discoveredRewards) {
+                    const rewardKey = world.toKey(reward.x, reward.y);
+                    if (!state.discoveredCells.has(rewardKey)) continue;
+                    distances.set(rewardKey, 0);
+                    queue.push({ x: reward.x, y: reward.y });
+                }
+
+                let head = 0;
+                while (head < queue.length) {
+                    const current = queue[head++];
+                    const currentKey = world.toKey(current.x, current.y);
+                    const currentDistance = distances.get(currentKey);
+                    const neighbors = world.getNeighborCells(current.x, current.y);
+                    for (const neighbor of neighbors) {
+                        const key = world.toKey(neighbor.x, neighbor.y);
+                        if (distances.has(key) || obstacleKeys.has(key) || !state.discoveredCells.has(key)) {
+                            continue;
+                        }
+                        distances.set(key, currentDistance + 1);
+                        queue.push({ x: neighbor.x, y: neighbor.y });
+                    }
+                }
+                return distances;
+            }
+
+            function updateUnknownNeighborsIncremental(newCellKeys) {
+                if (!state.discoveredCells || state.discoveredCells.size === 0) {
+                    overlayCache.unknownNeighborsByKey = new Map();
+                    return;
+                }
+
+                if (overlayCache.unknownNeighborsByKey.size === 0) {
+                    for (const key of state.discoveredCells.values()) {
+                        const [x, y] = world.fromKey(key);
+                        overlayCache.unknownNeighborsByKey.set(key, countUnknownNeighborsAt(x, y));
+                    }
+                    return;
+                }
+
+                const impacted = new Set();
+                for (const key of newCellKeys) {
+                    impacted.add(key);
+                    const [x, y] = world.fromKey(key);
+                    const neighbors = world.getNeighborCells(x, y);
+                    for (const neighbor of neighbors) {
+                        impacted.add(world.toKey(neighbor.x, neighbor.y));
+                    }
+                }
+
+                for (const key of impacted.values()) {
+                    if (!state.discoveredCells.has(key)) {
+                        overlayCache.unknownNeighborsByKey.delete(key);
+                        continue;
+                    }
+                    const [x, y] = world.fromKey(key);
+                    overlayCache.unknownNeighborsByKey.set(key, countUnknownNeighborsAt(x, y));
+                }
+            }
+
+            function refreshSurpriseCache(topologyChanged) {
+                overlayCache.surpriseMax = 0;
+                if (!state.discoveredCells || state.discoveredCells.size === 0 || !surpriseEstimator || config.enableSurprise === false) {
+                    overlayCache.surpriseByKey = new Map();
+                    overlayCache.priorSignature = "";
+                    return;
+                }
+
+                const originPosition = { x: agent.x, y: agent.y };
+                const prior = surpriseEstimator.getPriorForAction(originPosition);
+                const rewardLift = Math.max(0, prior.reward - (1 / 3));
+                const obstacleRisk = Math.max(0, prior.obstacle - (1 / 3));
+                const perUnknownGain = Math.max(0, rewardLift - (0.5 * obstacleRisk));
+                const priorSignature = `${prior.reward.toFixed(4)}|${prior.obstacle.toFixed(4)}|${perUnknownGain.toFixed(4)}`;
+
+                if (perUnknownGain <= 0) {
+                    overlayCache.surpriseByKey = new Map();
+                    overlayCache.priorSignature = priorSignature;
+                    return;
+                }
+
+                if (!topologyChanged && overlayCache.priorSignature === priorSignature && overlayCache.surpriseByKey.size > 0) {
+                    for (const surprise of overlayCache.surpriseByKey.values()) {
+                        if (surprise > overlayCache.surpriseMax) {
+                            overlayCache.surpriseMax = surprise;
+                        }
+                    }
+                    return;
+                }
+
+                const nextSurpriseByKey = new Map();
+                for (const [key, unknownNeighbors] of overlayCache.unknownNeighborsByKey.entries()) {
+                    if (unknownNeighbors <= 0) {
+                        continue;
+                    }
+                    const surprise = unknownNeighbors * perUnknownGain;
+                    if (surprise <= 0) {
+                        continue;
+                    }
+                    nextSurpriseByKey.set(key, surprise);
+                    if (surprise > overlayCache.surpriseMax) {
+                        overlayCache.surpriseMax = surprise;
+                    }
+                }
+
+                overlayCache.surpriseByKey = nextSurpriseByKey;
+                overlayCache.priorSignature = priorSignature;
+            }
+
+            function countUnknownNeighborsAt(x, y) {
+                const neighbors = world.getNeighborCells(x, y);
+                let count = 0;
+                for (const neighbor of neighbors) {
+                    const key = world.toKey(neighbor.x, neighbor.y);
+                    if (!state.discoveredCells.has(key)) {
+                        count += 1;
+                    }
+                }
+                return count;
+            }
+
             function getMousePos(canvas, evt) {
                 const rect = canvas.getBoundingClientRect();
                 return {
@@ -934,6 +1362,7 @@
             world.generateObstaclesAndRewards();
             discoverSurroundings();
             drawGrid();
+            refreshOverlayCaches();
             drawAgent(agent.x, agent.y);
 
             moveInterval = setInterval(() => {

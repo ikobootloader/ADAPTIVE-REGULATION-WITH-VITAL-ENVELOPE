@@ -8,6 +8,16 @@ Le format est basÃ© sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0
 
 ### En cours
 - Phase F â€” IntÃ©gration et benchmark comparatif (Ã  venir)
+- Visualisation des zones revisitées ajoutée dans l'UI (overlay bleu + toggle)
+- Ajout d'overlays optionnels : frontiÃ¨res, coÃ»t de retour et surprise locale (toggles dÃ©diÃ©s)
+- Zone explanation enrichie : boucle de dÃ©cision ARVE, rÃ´le des modules actifs et guide de lecture visuelle
+- Optimisation performances visualisation : caches overlays par tick + grille précalculée pour réduire les recalculs croissants
+- Passe ultra-perf : recalcul incrémental des overlays via `lastDiscoveredCells` (mise à jour locale des voisins impactés)
+- Passe 3 ciblée zones revisitées : cache de rendu revisites + jeux de clés obstacle/récompense persistants
+- Passe 4 algorithme revisites : `updateVisitedPositions` en lazy decay O(1) (suppression du parcours complet de la map à chaque tick)
+- Zone explanation enrichie pour double audience (débutant + expert) : cycle par tick, lecture stats/overlays et glossaire
+- Passe micro-UX explanation : sections visuelles distinctes (débutant/expert), synthèse rapide et recentrage sur le modèle ARVE global (sans focalisation phase)
+- Passe rédactionnelle pédagogique : ajout d'exemples concrets "si X alors Y" + grille de lecture décisionnelle en 3 questions
 
 ---
 
@@ -28,6 +38,8 @@ Le format est basÃ© sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0
 - enchmark.js :
   - rÃ©Ã©criture compatible ARVE Phase F (modules DVPA + ARVE)
   - support des flags --full, --no-clock, --no-prospective, --no-diffusion, --no-surprise, --baseline-dvpa
+  - ajout d'un suivi de progression en console
+  - export CSV automatique (par défaut `benchmark-results.csv`, surchargable via `--csv=...`, désactivable via `--no-csv`)
 
 ### Impact
 - IntÃ©gration C/D/E stabilisÃ©e dans un mode full et un mode ablation, sans changement dâ€™architecture locale
